@@ -1,2 +1,2 @@
 # fs
-a simple file system as the basis a course project
+a simple file system as the basis of a course project
