@@ -27,7 +27,13 @@ class Disk {
 public:
 	Disk()
 	{
+	    // 打开已经存在的disk文件
 		fp = fopen("disk", "r+b");
+
+		// disk文件不存在就创建一个
+		if (!fp)
+            fp = fopen("disk", "w+b");
+
 		if (fp) {
 			ok = true;
 		}
@@ -46,6 +52,7 @@ public:
         return ok;
 	}
 
+	// 读扇区i。请确保sector所指缓冲区有SECTOR_SIZE字节大
 	void read(int i, void* sector)
 	{
 		fseek(fp, i * SECTOR_SIZE, SEEK_SET);
@@ -53,6 +60,7 @@ public:
 
 	}
 
+	// 写扇区i。请确保sector所指缓冲区有SECTOR_SIZE字节大
 	void write(int i, const void* sector)
 	{
 		fseek(fp, i * SECTOR_SIZE, SEEK_SET);
@@ -80,7 +88,8 @@ struct Sector0 {
 
 const int TOTAL_ENTRIES_ROOT = 127; // 根目录可包含的目录项数目
 
-
+// 确保你的修改不会导致数据结构的大小不等于一扇区
+static_assert(sizeof(Sector0) == SECTOR_SIZE, "你的修改导致数据结构的大小不等于一扇区");
 //-------------------------扇区1------------------------------
 // 空闲扇区表 之 表项，大小8字节
 // 第1个扇区是空闲扇区表，最多能存放256个表项
@@ -99,6 +108,8 @@ struct Sector1 {
 
 const int TOTAL_ENTRIES_FST = 511;  // 空闲扇区表可包含的表项数目
 
+// 确保你的修改不会导致数据结构的大小不等于一扇区
+static_assert(sizeof(Sector1) == SECTOR_SIZE, "你的修改导致数据结构的大小不等于一扇区");
 //---------------------------文件系统----------------------
 class FileSystem {
 	Disk* disk;
@@ -152,7 +163,7 @@ public:
 
 		fst_count = 1;
 		sector1.count = fst_count;
-		fst[0].first_free_sector = 2;
+		fst[0].first_free_sector = 2; // 前两个扇区已做它用
         fst[0].total = 998; // 假设磁盘大小为2+998=1000个扇区
 		disk->write(1, &sector1);
 	}
@@ -173,9 +184,11 @@ public:
 	    return rootDir[fd].size;
 
 	}
-//	void remove(const char* filename)
-//	{
-//	}
+
+	void remove(const char* filename)
+	{
+	    puts("not implemented!");
+	}
 
 	bool newfile(const char* filename)
 	{

@@ -9,10 +9,6 @@ void show_dir_entry(DirEntry* e)
 
 int main()
 {
-    // 确保你的修改不会导致数据结构的大小不等于一扇区
-    assert(sizeof(Sector0) == SECTOR_SIZE);
-    assert(sizeof(Sector1) == SECTOR_SIZE);
-
 	Disk disk;
 	if (!disk.is_ok()) {
         puts("disk error");
@@ -20,17 +16,17 @@ int main()
 	}
 
 	FileSystem fs(&disk);
-	if (!fs.is_formatted()) {
-        puts("disk has not been formatted. Use format.");
-	}
 
-
+    puts("use 'help' to get available commands");
     char cmd[20];
     char filename[50];
 
     for (;;) {
         printf("> ");
         scanf("%s", cmd);
+        if (!fs.is_formatted() &&strcmp(cmd, "format") != 0) {
+            puts("Disk has not been formatted. Use format first.");
+        }
 
         if (strcmp(cmd, "quit") == 0)
             break;
@@ -42,7 +38,7 @@ int main()
         }
         if (strcmp(cmd, "rm") == 0) {
             scanf("%s", filename);
-            puts(filename);
+            fs.remove(filename);
         }
         if (strcmp(cmd, "touch") == 0) {
             scanf("%s", filename);
@@ -64,28 +60,18 @@ int main()
             fs.write(fd, buf, strlen(buf));
             fs.close(fd);
         }
+        if (strcmp(cmd, "help") == 0) {
+            puts("format\t\t\t\tformat the disk");
+            puts("touch <filename>\t\tcreate a new file");
+            puts("rm <filename>\t\t\tremove a new file");
+            puts("ls\t\t\t\tlist all files");
+            puts("cat <filename>\t\t\tshow a file");
+            puts("write <filename> <content>\tcreate a file having the content");
+        }
 
 
     }
 
-
-//	printf("%d", SECTOR_SIZE / sizeof(DirEntry));
-//	char sector[SECTOR_SIZE] = "abc";
-//	disk.write(1, sector);
-//	char sector2[SECTOR_SIZE];
-//	disk.read(1, sector2);
-//	puts(sector2);
-
-//	fs.newfile("a.txt");
-//	int fd = fs.open("a.txt");
-//	char buf[] = "abcdefghij";
-//	fs.write(fd, buf, sizeof buf);
-//	fs.close(fd);
-////
-//	fd = fs.open("a.txt");
-//	char buf2[100];
-//	fs.read(fd, buf2, 11);
-//	puts(buf2);
 
 	return 0;
 }
