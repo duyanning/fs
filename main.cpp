@@ -24,27 +24,28 @@ int main()
     for (;;) {
         printf("> ");
         scanf("%s", cmd);
-        if (!fs.is_formatted() &&strcmp(cmd, "format") != 0) {
+        if (!fs.is_formatted() && strcmp(cmd, "format") != 0 && strcmp(cmd, "quit") != 0) {
             puts("Disk has not been formatted. Use format first.");
+            continue;
         }
 
         if (strcmp(cmd, "quit") == 0)
             break;
-        if (strcmp(cmd, "ls") == 0) {
+        else if (strcmp(cmd, "ls") == 0) {
             fs.traverse(show_dir_entry);
         }
-        if (strcmp(cmd, "format") == 0) {
+        else if (strcmp(cmd, "format") == 0) {
             fs.format();
         }
-        if (strcmp(cmd, "rm") == 0) {
+        else if (strcmp(cmd, "rm") == 0) {
             scanf("%s", filename);
             fs.remove(filename);
         }
-        if (strcmp(cmd, "touch") == 0) {
+        else if (strcmp(cmd, "touch") == 0) {
             scanf("%s", filename);
             fs.newfile(filename);
         }
-        if (strcmp(cmd, "cat") == 0) {
+        else if (strcmp(cmd, "cat") == 0) {
             scanf("%s", filename);
             int fd = fs.open(filename);
             char buf[100];
@@ -52,7 +53,7 @@ int main()
             fs.read(fd, buf, fs.get_size(fd));
             puts(buf);
         }
-        if (strcmp(cmd, "write") == 0) {
+        else if (strcmp(cmd, "write") == 0) {
             scanf("%s", filename);
             char buf[100];
             scanf("%s", buf);
@@ -60,7 +61,7 @@ int main()
             fs.write(fd, buf, strlen(buf));
             fs.close(fd);
         }
-        if (strcmp(cmd, "help") == 0) {
+        else if (strcmp(cmd, "help") == 0) {
             puts("format\t\t\t\tformat the disk");
             puts("touch <filename>\t\tcreate a new file");
             puts("rm <filename>\t\t\tremove a new file");
