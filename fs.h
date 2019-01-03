@@ -100,7 +100,7 @@ struct FreeSectorTableEntry {
 
 // 第1个扇区的结构
 struct Sector1 {
-    int count; // fst的表项数,4字节
+    int fst_count; // fst的表项数,4字节
     int nouse; // 4字节
      // 空闲扇区表，最多能包含(4096-4-4)/8=511个目录项
     FreeSectorTableEntry fst[511];
@@ -120,7 +120,6 @@ class FileSystem {
 	//FreeSectorTableEntry fst[SECTOR_SIZE / sizeof(FreeSectorTableEntry)];
 	FreeSectorTableEntry* fst;
 
-	int fst_count; // 千万小心，务必时刻保持这个变量跟sector1.count的一致
 public:
 	FileSystem(Disk* d)
 	{
@@ -133,7 +132,6 @@ public:
 		// 从磁盘读入空闲扇区表。空闲扇区表位于第1个扇区
 		disk->read(1, &sector1);
 		fst = sector1.fst;
-		fst_count = sector1.count;
 	}
 
 	~FileSystem()
@@ -142,7 +140,6 @@ public:
 		disk->write(0, &sector0);
 
 		// 将空闲扇区表写回磁盘的第1个扇区
-		sector1.count = fst_count;
 		disk->write(1, &sector1);
 	}
 
@@ -161,8 +158,7 @@ public:
 		}
 		disk->write(0, &sector0);
 
-		fst_count = 1;
-		sector1.count = fst_count;
+		sector1.fst_count = 1;
 		fst[0].first_free_sector = 2; // 前两个扇区已做它用
         fst[0].total = 998; // 假设磁盘大小为2+998=1000个扇区
 		disk->write(1, &sector1);
@@ -240,13 +236,13 @@ public:
 		if (rootDir[fd].sector == -1) { // 表示还未分配空间，现在分配
             // 在空闲扇区表里找到足够大的连续空间，就分配
             int j;
-            for (j = 0; j < fst_count; j++) {
+            for (j = 0; j < sector1.fst_count; j++) {
                 if (fst[j].total >= nSectors) {
                     break;
                 }
             }
 
-            assert(j < fst_count); // 为简单起见，假设一定能找到
+            assert(j < sector1.fst_count); // 为简单起见，假设一定能找到
 
             rootDir[fd].sector = fst[j].first_free_sector;
             fst[j].total -= nSectors;
