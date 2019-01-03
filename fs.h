@@ -110,6 +110,18 @@ const int TOTAL_ENTRIES_FST = 511;  // 空闲扇区表可包含的表项数目
 
 // 确保你的修改不会导致数据结构的大小不等于一扇区
 static_assert(sizeof(Sector1) == SECTOR_SIZE, "你的修改导致数据结构的大小不等于一扇区");
+//---------------------------打开文件表----------------------
+// 打开文件表的表项
+struct OpenedFileTableEntry {
+    bool allocated;
+    DirEntry* dir_entry; // 文件的目录项
+    int pos; // 当前读写位置
+};
+
+const int TOTAL_ENTRIES_OFT = 100;  // 打开文件表可包含的表项数目
+
+// 打开文件表
+OpenedFileTableEntry opened_file_table[TOTAL_ENTRIES_OFT];
 //---------------------------文件系统----------------------
 class FileSystem {
 	Disk* disk;
@@ -132,6 +144,9 @@ public:
 		// 从磁盘读入空闲扇区表。空闲扇区表位于第1个扇区
 		disk->read(1, &sector1);
 		fst = sector1.fst;
+
+		// 初始化打开文件表(全部清零)
+		memset(opened_file_table, 0, sizeof opened_file_table);
 	}
 
 	~FileSystem()
@@ -209,31 +224,54 @@ public:
 	}
 
 
+	// 返回打开文件表中的位置，如果文件不存在，就返回-1
+	// 尚未考虑文件之前已经打开的情形
 	int open(const char* filename)
 	{
-		int i;
-		for (i = 0; i < TOTAL_ENTRIES_ROOT; i++) {
-			if (rootDir[i].allocated == 1 && strcmp(rootDir[i].name, filename) == 0)
+	    // 先在根目录中看看该文件是否存在
+		int iDir;
+		for (iDir = 0; iDir < TOTAL_ENTRIES_ROOT; iDir++) {
+			if (rootDir[iDir].allocated == 1 && strcmp(rootDir[iDir].name, filename) == 0)
 				break;
 		}
 
-		if (i == TOTAL_ENTRIES_ROOT) {
+		if (iDir == TOTAL_ENTRIES_ROOT) {
 			return -1;
 		}
 
-		return i;
+		// 在打开文件表中分配一个表项
+		int iOft;
+		for (iOft = 0; iOft < TOTAL_ENTRIES_OFT; iOft++) {
+			if (opened_file_table[iOft].allocated == 0)
+				break;
+		}
+
+		if (iOft == TOTAL_ENTRIES_OFT) {
+			puts("已达到打开文件的最大数目");
+			return -1;
+		}
+
+		opened_file_table[iOft].allocated = 1;
+		opened_file_table[iOft].dir_entry = &rootDir[iDir];
+		opened_file_table[iOft].pos = 0;
+
+
+		return iOft;
 
 	}
 //
 	void close(int fd)
 	{
+	    opened_file_table[fd].allocated = 0;
 	}
 //
 	void write(int fd, const void* buffer, int size)
 	{
+	    DirEntry* de = opened_file_table[fd].dir_entry;
+
 	    int nSectors = bytes2sectors(size);
 
-		if (rootDir[fd].sector == -1) { // 表示还未分配空间，现在分配
+		if (de->sector == -1) { // 表示还未分配空间，现在分配
             // 在空闲扇区表里找到足够大的连续空间，就分配
             int j;
             for (j = 0; j < sector1.fst_count; j++) {
@@ -244,44 +282,77 @@ public:
 
             assert(j < sector1.fst_count); // 为简单起见，假设一定能找到
 
-            rootDir[fd].sector = fst[j].first_free_sector;
+            de->sector = fst[j].first_free_sector;
             fst[j].total -= nSectors;
             fst[j].first_free_sector += nSectors;
+
+            de->size = size;
 		}
 		else {
             // 为简单起见，假设先前分配的空间大小能满足日后所有需求
-            assert(bytes2sectors(rootDir[fd].size) >= nSectors);
+            assert(bytes2sectors(de->size) >= nSectors);
 		}
 
-		rootDir[fd].size = size;
 
-		int first_sector = rootDir[fd].sector;
+
+		int first_sector = de->sector;
 
 		char* p = (char*)buffer;
 
 
-		int n = size / SECTOR_SIZE;
-		int remainder = size % SECTOR_SIZE;
+		// 需要考虑这样的情形：起始与结束位置，都不在扇区边界处。
+		// 可能起始位置位于起始扇区的中间某处
+		// 结束位置也位于结束扇区的中间某处
+		// 对于这两个扇区要拼装出来在写入磁盘
+		// 对于起始扇区，拼装出来的内容来自磁盘上起始扇区的现有内容与buffer
+		// 对于结束扇区，拼装出来的内容来自磁盘上结束扇区的现有内容与buffer
+		// 注意：所有begin_、end_区间皆为闭区间区间
+		int begin_pos = opened_file_table[fd].pos;
+		int end_pos = begin_pos + size - 1;
+        int begin_sector = first_sector + begin_pos / SECTOR_SIZE;
+        int end_sector = first_sector + end_pos / SECTOR_SIZE;
+        int begin_pos_in_sector = begin_pos % SECTOR_SIZE;
+        int end_pos_in_sector = end_pos % SECTOR_SIZE;
 
-		int i;
-		for (i = first_sector; i < first_sector + n; i++) {
-			disk->write(i, p);
-			p += SECTOR_SIZE;
-		}
+        for (int iSector = begin_sector; iSector <= end_sector; iSector++) {
+            if (iSector == begin_sector && iSector == end_sector) {
+                char buf[SECTOR_SIZE];
+                disk->read(iSector, buf);
+                memcpy(buf + begin_pos_in_sector, p, size);
+                disk->write(iSector, buf);
+                p += size;
+            }
+            else if (iSector == begin_sector) {
+                char buf[SECTOR_SIZE];
+                disk->read(iSector, buf);
+                memcpy(buf + begin_pos_in_sector, p, SECTOR_SIZE - begin_pos_in_sector);
+                disk->write(iSector, buf);
+                p += SECTOR_SIZE - begin_pos_in_sector;
+            }
+            else if (iSector == end_sector - 1) {
+                char buf[SECTOR_SIZE];
+                disk->read(iSector, buf);
+                memcpy(buf, p, end_pos_in_sector + 1);
+                disk->write(iSector, buf);
+                p += end_pos_in_sector;
+            }
+            else {
+                disk->write(iSector, p);
+                p += SECTOR_SIZE;
+            }
+        }
 
-		if (remainder != 0) {
-			char buf[SECTOR_SIZE];
-			memcpy(buf, p, remainder);
-			disk->write(i, buf);
-		}
-
-
+        opened_file_table[fd].pos += size; // 移动读写位置
+        if (opened_file_table[fd].pos > de->size) {
+            de->size = opened_file_table[fd].pos;
+        }
 
 	}
 //
 	void read(int fd, const void* buf, int size)
 	{
-		int first_sector = rootDir[fd].sector;
+	    DirEntry* de = opened_file_table[fd].dir_entry;
+		int first_sector = de->sector;
 		char* p = (char*)buf;
 
 
