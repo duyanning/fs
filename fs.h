@@ -192,7 +192,8 @@ public:
 
 	int get_size(int fd)
 	{
-	    return rootDir[fd].size;
+	    DirEntry* de = opened_file_table[fd].dir_entry;
+	    return de->size;
 
 	}
 
@@ -316,24 +317,24 @@ public:
 
         for (int iSector = begin_sector; iSector <= end_sector; iSector++) {
             if (iSector == begin_sector && iSector == end_sector) {
-                char buf[SECTOR_SIZE];
-                disk->read(iSector, buf);
-                memcpy(buf + begin_pos_in_sector, p, size);
-                disk->write(iSector, buf);
+                char sec[SECTOR_SIZE];
+                disk->read(iSector, sec);
+                memcpy(sec + begin_pos_in_sector, p, size);
+                disk->write(iSector, sec);
                 p += size;
             }
             else if (iSector == begin_sector) {
-                char buf[SECTOR_SIZE];
-                disk->read(iSector, buf);
-                memcpy(buf + begin_pos_in_sector, p, SECTOR_SIZE - begin_pos_in_sector);
-                disk->write(iSector, buf);
+                char sec[SECTOR_SIZE];
+                disk->read(iSector, sec);
+                memcpy(sec + begin_pos_in_sector, p, SECTOR_SIZE - begin_pos_in_sector);
+                disk->write(iSector, sec);
                 p += SECTOR_SIZE - begin_pos_in_sector;
             }
             else if (iSector == end_sector - 1) {
-                char buf[SECTOR_SIZE];
-                disk->read(iSector, buf);
-                memcpy(buf, p, end_pos_in_sector + 1);
-                disk->write(iSector, buf);
+                char sec[SECTOR_SIZE];
+                disk->read(iSector, sec);
+                memcpy(sec, p, end_pos_in_sector + 1);
+                disk->write(iSector, sec);
                 p += end_pos_in_sector;
             }
             else {
@@ -349,27 +350,68 @@ public:
 
 	}
 //
-	void read(int fd, const void* buf, int size)
+	void read(int fd, const void* buffer, int size)
 	{
 	    DirEntry* de = opened_file_table[fd].dir_entry;
+
+	    // 为简单起见，不要让读写位置越过文件末尾
+	    assert(opened_file_table[fd].pos + size <= de->size);
+
 		int first_sector = de->sector;
-		char* p = (char*)buf;
+		char* p = (char*)buffer;
+
+		int begin_pos = opened_file_table[fd].pos;
+		int end_pos = begin_pos + size - 1;
+        int begin_sector = first_sector + begin_pos / SECTOR_SIZE;
+        int end_sector = first_sector + end_pos / SECTOR_SIZE;
+        int begin_pos_in_sector = begin_pos % SECTOR_SIZE;
+        int end_pos_in_sector = end_pos % SECTOR_SIZE;
+
+        for (int iSector = begin_sector; iSector <= end_sector; iSector++) {
+            if (iSector == begin_sector && iSector == end_sector) {
+                char sec[SECTOR_SIZE];
+                disk->read(iSector, sec);
+                memcpy(p, sec + begin_pos_in_sector, size);
+                p += size;
+            }
+            else if (iSector == begin_sector) {
+                char sec[SECTOR_SIZE];
+                disk->read(iSector, sec);
+                memcpy(p, sec + begin_pos_in_sector, SECTOR_SIZE - begin_pos_in_sector);
+                p += SECTOR_SIZE - begin_pos_in_sector;
+            }
+            else if (iSector == end_sector - 1) {
+                char sec[SECTOR_SIZE];
+                disk->read(iSector, sec);
+                memcpy(p, sec, end_pos_in_sector + 1);
+                p += end_pos_in_sector;
+            }
+            else {
+                disk->read(iSector, p);
+                p += SECTOR_SIZE;
+            }
+        }
+
+        opened_file_table[fd].pos += size; // 移动读写位置
+        if (opened_file_table[fd].pos > de->size) {
+            de->size = opened_file_table[fd].pos;
+        }
 
 
-		int n = size / SECTOR_SIZE;
-		int remainder = size % SECTOR_SIZE;
-
-		int i;
-		for (i = first_sector; i < first_sector + n; i++) {
-			disk->read(i, p);
-			p += SECTOR_SIZE;
-		}
-
-		if (remainder != 0) {
-			char buf[SECTOR_SIZE];
-			disk->read(i, buf);
-			memcpy(p, buf, remainder);
-		}
+//		int n = size / SECTOR_SIZE;
+//		int remainder = size % SECTOR_SIZE;
+//
+//		int i;
+//		for (i = first_sector; i < first_sector + n; i++) {
+//			disk->read(i, p);
+//			p += SECTOR_SIZE;
+//		}
+//
+//		if (remainder != 0) {
+//			char buffer[SECTOR_SIZE];
+//			disk->read(i, buffer);
+//			memcpy(p, buffer, remainder);
+//		}
 	}
 };
 
