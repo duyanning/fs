@@ -22,49 +22,65 @@ int bytes2sectors(int nBytes)
 
 // 代表磁盘(其实相当于磁盘镜像)
 class Disk {
-	FILE* fp;
-	bool ok;
+//	FILE* fp;
+//	bool ok;
 public:
 	Disk()
 	{
 	    // 打开已经存在的disk文件
-		fp = fopen("disk", "r+b");
+		FILE* fp = fopen("disk", "r+b");
+		if (!fp)
+            puts("disk不存在");
 
 		// disk文件不存在就创建一个
 		if (!fp)
             fp = fopen("disk", "w+b");
 
-		if (fp) {
-			ok = true;
-		}
-		else {
-            ok = false;
-		}
+        fclose(fp);
+
+//		if (fp) {
+//			ok = true;
+//		}
+//		else {
+//            ok = false;
+//		}
 	}
 
 	~Disk()
 	{
-		fclose(fp);
+		//fclose(fp);
 	}
 
-	bool is_ok()
-	{
-        return ok;
-	}
+//	bool is_ok()
+//	{
+//        return ok;
+//	}
 
 	// 读扇区i。请确保sector所指缓冲区有SECTOR_SIZE字节大
 	void read(int i, void* sector)
 	{
+	    FILE* fp = fopen("disk", "r+b");
+        if (!fp)
+            puts("read打开disk失败");
+
 		fseek(fp, i * SECTOR_SIZE, SEEK_SET);
 		fread(sector, 1, SECTOR_SIZE, fp);
+
+		fclose(fp);
 
 	}
 
 	// 写扇区i。请确保sector所指缓冲区有SECTOR_SIZE字节大
 	void write(int i, const void* sector)
 	{
+	    FILE* fp = fopen("disk", "r+b"); // 用w+b的话就产生新文件了
+        if (!fp)
+            puts("write打开disk失败");
+
 		fseek(fp, i * SECTOR_SIZE, SEEK_SET);
 		fwrite(sector, 1, SECTOR_SIZE, fp);
+
+		fclose(fp);
 	}
 };
 

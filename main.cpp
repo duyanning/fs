@@ -10,10 +10,10 @@ void show_dir_entry(DirEntry* e)
 int main()
 {
 	Disk disk;
-	if (!disk.is_ok()) {
-        puts("disk error");
-        return 0;
-	}
+//	if (!disk.is_ok()) {
+//        puts("disk error");
+//        return 0;
+//	}
 
 	FileSystem fs(&disk);
 
