@@ -95,16 +95,16 @@ int main()
             fs.close(fd);
         }
         else if (strcmp(cmd, "help") == 0) {
-            puts("quit\t\t\t退出");
-            puts("format\t\t\t格式化磁盘");
-            puts("touch 文件名\t\t创建一个新文件");
-            puts("rm 文件名\t\t删除一个文件");
-            puts("ls\t\t\t列出所有文件");
-            puts("cat 文件名\t\t显示文件内容");
-            puts("write 文件名 内容\t将内容写入文件");
+            puts("quit\t\t\t\t退出");
+            puts("format\t\t\t\t格式化磁盘");
+            puts("touch 文件名\t\t\t创建一个新文件");
+            puts("rm 文件名\t\t\t删除一个文件");
+            puts("ls\t\t\t\t列出所有文件");
+            puts("cat 文件名\t\t\t显示文件内容");
+            puts("write 文件名 内容\t\t将内容写入文件");
             puts("write2 文件名 内容一 内容二\t将内容一、内容二相继写入文件");
             puts("writeat 文件名 位置 内容\t将内容写入文件的指定位置");
-            puts("catat 文件名 位置\t从文件的指定位置处开始显示");
+            puts("catat 文件名 位置\t\t从文件的指定位置处开始显示");
         }
     }
 
