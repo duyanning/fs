@@ -16,7 +16,7 @@ int main()
         puts("磁盘尚未格式化，请先执行format命令格式化磁盘。");
 	}
 
-    puts("use 'help' to get available commands");
+    puts("执行help命令可列出所有命令；执行quit命令退出。");
     char cmd[20];
     char filename[50];
 
@@ -53,6 +53,17 @@ int main()
             puts(buf);
             fs.close(fd);
         }
+        else if (strcmp(cmd, "catat") == 0) {
+            int pos;
+            scanf("%s%d", filename, &pos);
+            int fd = fs.open(filename);
+            char buf[100];
+            memset(buf, 0, sizeof buf); // 将buf清零
+            fs.seek(fd, pos);
+            fs.read(fd, buf, fs.get_size(fd) - pos);
+            puts(buf);
+            fs.close(fd);
+        }
         else if (strcmp(cmd, "write") == 0) {
             scanf("%s", filename);
             char buf[100];
@@ -72,13 +83,28 @@ int main()
             fs.write(fd, buf2, strlen(buf2));
             fs.close(fd);
         }
+        else if (strcmp(cmd, "writeat") == 0) {
+            scanf("%s", filename);
+            int pos;
+            char buf[100];
+            scanf("%d%s", &pos, buf);
+
+            int fd = fs.open(filename);
+            fs.seek(fd, pos);
+            fs.write(fd, buf, strlen(buf));
+            fs.close(fd);
+        }
         else if (strcmp(cmd, "help") == 0) {
-            puts("format\t\t\t\tformat the disk");
-            puts("touch <filename>\t\tcreate a new file");
-            puts("rm <filename>\t\t\tremove a new file");
-            puts("ls\t\t\t\tlist all files");
-            puts("cat <filename>\t\t\tshow a file");
-            puts("write <filename> <content>\tcreate a file having the content");
+            puts("quit\t\t\t退出");
+            puts("format\t\t\t格式化磁盘");
+            puts("touch 文件名\t\t创建一个新文件");
+            puts("rm 文件名\t\t删除一个文件");
+            puts("ls\t\t\t列出所有文件");
+            puts("cat 文件名\t\t显示文件内容");
+            puts("write 文件名 内容\t将内容写入文件");
+            puts("write2 文件名 内容一 内容二\t将内容一、内容二相继写入文件");
+            puts("writeat 文件名 位置 内容\t将内容写入文件的指定位置");
+            puts("catat 文件名 位置\t从文件的指定位置处开始显示");
         }
     }
 

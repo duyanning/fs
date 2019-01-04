@@ -200,6 +200,20 @@ public:
 
 	}
 
+	// 移动文件读写位置
+	void seek(int fd, int pos)
+	{
+//	    // 为简单起见，不要让新的位置超过文件大小。(改在write里进行检测)
+//	    assert(false);
+        opened_file_table[fd].pos = pos;
+	}
+
+	// 返回文件当前读写位置
+	int tell(int fd)
+	{
+	    return opened_file_table[fd].pos;
+	}
+
 	// 删除指定文件
 	void remove(const char* filename)
 	{
@@ -278,7 +292,7 @@ public:
 	{
 	    DirEntry* de = opened_file_table[fd].dir_entry;
 
-	    int nSectors = bytes2sectors(size);
+	    int nSectors = bytes2sectors(opened_file_table[fd].pos + size);
 
 		if (de->sector == -1) { // 表示还未分配空间，现在分配
             // 在空闲扇区表里找到足够大的连续空间，就分配
