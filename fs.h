@@ -21,64 +21,65 @@ int bytes2sectors(int nBytes)
 }
 
 // ´ú±í´ÅÅÌ(ÆäÊµÏàµ±ÓÚ´ÅÅÌ¾µÏñ)
-class Disk {
+class Disk
+{
 public:
-	Disk()
-	{
-	    // ´ò¿ªÒÑ¾­´æÔÚµÄdiskÎÄ¼ş
-		FILE* fp = fopen("disk", "r+b");
-		if (!fp)
+    Disk()
+    {
+        // ´ò¿ªÒÑ¾­´æÔÚµÄdiskÎÄ¼ş
+        FILE* fp = fopen("disk", "r+b");
+        if (!fp)
             puts("disk²»´æÔÚ");
 
-		// diskÎÄ¼ş²»´æÔÚ¾Í´´½¨Ò»¸ö
-		if (!fp) {
+        // diskÎÄ¼ş²»´æÔÚ¾Í´´½¨Ò»¸ö
+        if (!fp) {
             fp = fopen("disk", "w+b");
             puts("ÒÑ´´½¨disk");
-		}
+        }
 
         fclose(fp);
 
-	}
+    }
 
-	~Disk()
-	{
-	}
+    ~Disk()
+    {
+    }
 
-	// ¶ÁÉÈÇøi¡£ÇëÈ·±£sectorËùÖ¸»º³åÇøÓĞSECTOR_SIZE×Ö½Ú´ó
-	void read(int i, void* sector)
-	{
-	    FILE* fp = fopen("disk", "r+b");
+    // ¶ÁÉÈÇøi¡£ÇëÈ·±£sectorËùÖ¸»º³åÇøÓĞSECTOR_SIZE×Ö½Ú´ó
+    void read(int i, void* sector)
+    {
+        FILE* fp = fopen("disk", "r+b");
         if (!fp)
             puts("read´ò¿ªdiskÊ§°Ü");
 
-		fseek(fp, i * SECTOR_SIZE, SEEK_SET);
-		fread(sector, 1, SECTOR_SIZE, fp);
+        fseek(fp, i * SECTOR_SIZE, SEEK_SET);
+        fread(sector, 1, SECTOR_SIZE, fp);
 
-		fclose(fp);
+        fclose(fp);
 
-	}
+    }
 
-	// Ğ´ÉÈÇøi¡£ÇëÈ·±£sectorËùÖ¸»º³åÇøÓĞSECTOR_SIZE×Ö½Ú´ó
-	void write(int i, const void* sector)
-	{
-	    FILE* fp = fopen("disk", "r+b"); // ÓÃw+bµÄ»°¾Í²úÉúĞÂÎÄ¼şÁË
+    // Ğ´ÉÈÇøi¡£ÇëÈ·±£sectorËùÖ¸»º³åÇøÓĞSECTOR_SIZE×Ö½Ú´ó
+    void write(int i, const void* sector)
+    {
+        FILE* fp = fopen("disk", "r+b"); // ÓÃw+bµÄ»°¾Í²úÉúĞÂÎÄ¼şÁË
         if (!fp)
             puts("write´ò¿ªdiskÊ§°Ü");
 
-		fseek(fp, i * SECTOR_SIZE, SEEK_SET);
-		fwrite(sector, 1, SECTOR_SIZE, fp);
+        fseek(fp, i * SECTOR_SIZE, SEEK_SET);
+        fwrite(sector, 1, SECTOR_SIZE, fp);
 
-		fclose(fp);
-	}
+        fclose(fp);
+    }
 };
 
 //-------------------------ÉÈÇø0------------------------------
 // Ä¿Â¼Ïî£¬´óĞ¡32×Ö½Ú
 struct DirEntry {
-	int allocated; // 0´ú±í¸ÃÄ¿Â¼Ïî¿ÕÏĞ£»1´ú±í¸ÃÄ¿Â¼ÏîÒÑ·ÖÅä³öÈ¥
-	char name[20]; // ÎÄ¼şÃû
-	int size;  // µ¥Î»×Ö½Ú
-	int sector;  // ÎÄ¼şËùÕ¼µÚÒ»¸öÉÈÇøµÄ±àºÅ¡£Èç¹ûÎª-1£¬±íÊ¾»¹Î´¸ø¸ÃÎÄ¼ş·ÖÅä¿Õ¼ä
+    int allocated; // 0´ú±í¸ÃÄ¿Â¼Ïî¿ÕÏĞ£»1´ú±í¸ÃÄ¿Â¼ÏîÒÑ·ÖÅä³öÈ¥
+    char name[20]; // ÎÄ¼şÃû
+    int size;  // µ¥Î»×Ö½Ú
+    int sector;  // ÎÄ¼şËùÕ¼µÚÒ»¸öÉÈÇøµÄ±àºÅ¡£Èç¹ûÎª-1£¬±íÊ¾»¹Î´¸ø¸ÃÎÄ¼ş·ÖÅä¿Õ¼ä
 };
 
 typedef void (*DirEntryFunc)(DirEntry* e);
@@ -98,15 +99,15 @@ static_assert(sizeof(Sector0) == SECTOR_SIZE, "ÄãµÄĞŞ¸Äµ¼ÖÂÊı¾İ½á¹¹µÄ´óĞ¡²»µÈÓÚÒ
 // ¿ÕÏĞÉÈÇø±í Ö® ±íÏî£¬´óĞ¡8×Ö½Ú
 // µÚ1¸öÉÈÇøÊÇ¿ÕÏĞÉÈÇø±í£¬×î¶àÄÜ´æ·Å256¸ö±íÏî
 struct FreeSectorTableEntry {
-	int first_free_sector;  // µÚÒ»¸ö¿ÕÏĞµÄÉÈÇø±àºÅ
-	int total;   // ¹²¶àÉÙ¸öÁ¬Ğø¿ÕÏĞµÄÉÈÇø
+    int first_free_sector;  // µÚÒ»¸ö¿ÕÏĞµÄÉÈÇø±àºÅ
+    int total;   // ¹²¶àÉÙ¸öÁ¬Ğø¿ÕÏĞµÄÉÈÇø
 };
 
 // µÚ1¸öÉÈÇøµÄ½á¹¹
 struct Sector1 {
     int fst_count; // fstµÄ±íÏîÊı,4×Ö½Ú
     int nouse; // 4×Ö½Ú
-     // ¿ÕÏĞÉÈÇø±í£¬×î¶àÄÜ°üº¬(4096-4-4)/8=511¸öÄ¿Â¼Ïî
+    // ¿ÕÏĞÉÈÇø±í£¬×î¶àÄÜ°üº¬(4096-4-4)/8=511¸öÄ¿Â¼Ïî
     FreeSectorTableEntry fst[511];
 };
 
@@ -127,174 +128,175 @@ const int TOTAL_ENTRIES_OFT = 100;  // ´ò¿ªÎÄ¼ş±í¿É°üº¬µÄ±íÏîÊıÄ¿
 // ´ò¿ªÎÄ¼ş±í
 OpenedFileTableEntry opened_file_table[TOTAL_ENTRIES_OFT];
 //---------------------------ÎÄ¼şÏµÍ³----------------------
-class FileSystem {
-	Disk* disk;
-	Sector0 sector0;
-	Sector1 sector1;
-	DirEntry* rootDir;
-	FreeSectorTableEntry* fst;
+class FileSystem
+{
+    Disk* disk;
+    Sector0 sector0;
+    Sector1 sector1;
+    DirEntry* rootDir;
+    FreeSectorTableEntry* fst;
 
 public:
-	FileSystem(Disk* d)
-	{
-		disk = d;
+    FileSystem(Disk* d)
+    {
+        disk = d;
 
-		// ´Ó´ÅÅÌ¶ÁÈë¸ùÄ¿Â¼¡£¸ùÄ¿Â¼Î»ÓÚµÚ0¸öÉÈÇø
-		disk->read(0, &sector0);
-		rootDir = sector0.rootDir;
+        // ´Ó´ÅÅÌ¶ÁÈë¸ùÄ¿Â¼¡£¸ùÄ¿Â¼Î»ÓÚµÚ0¸öÉÈÇø
+        disk->read(0, &sector0);
+        rootDir = sector0.rootDir;
 
-		// ´Ó´ÅÅÌ¶ÁÈë¿ÕÏĞÉÈÇø±í¡£¿ÕÏĞÉÈÇø±íÎ»ÓÚµÚ1¸öÉÈÇø
-		disk->read(1, &sector1);
-		fst = sector1.fst;
+        // ´Ó´ÅÅÌ¶ÁÈë¿ÕÏĞÉÈÇø±í¡£¿ÕÏĞÉÈÇø±íÎ»ÓÚµÚ1¸öÉÈÇø
+        disk->read(1, &sector1);
+        fst = sector1.fst;
 
-		// ³õÊ¼»¯´ò¿ªÎÄ¼ş±í(È«²¿ÇåÁã)
-		memset(opened_file_table, 0, sizeof opened_file_table);
-	}
+        // ³õÊ¼»¯´ò¿ªÎÄ¼ş±í(È«²¿ÇåÁã)
+        memset(opened_file_table, 0, sizeof opened_file_table);
+    }
 
-	~FileSystem()
-	{
-		// ½«¸ùÄ¿Â¼Ğ´»Ø´ÅÅÌµÄµÚ0¸öÉÈÇø¡£
-		disk->write(0, &sector0);
+    ~FileSystem()
+    {
+        // ½«¸ùÄ¿Â¼Ğ´»Ø´ÅÅÌµÄµÚ0¸öÉÈÇø¡£
+        disk->write(0, &sector0);
 
-		// ½«¿ÕÏĞÉÈÇø±íĞ´»Ø´ÅÅÌµÄµÚ1¸öÉÈÇø
-		disk->write(1, &sector1);
-	}
+        // ½«¿ÕÏĞÉÈÇø±íĞ´»Ø´ÅÅÌµÄµÚ1¸öÉÈÇø
+        disk->write(1, &sector1);
+    }
 
-	// ÅĞ¶Ï´ÅÅÌÊÇ·ñÒÑ¾­¸ñÊ½»¯
-	bool is_formatted()
-	{
+    // ÅĞ¶Ï´ÅÅÌÊÇ·ñÒÑ¾­¸ñÊ½»¯
+    bool is_formatted()
+    {
         return sector0.formatted == 1;
-	}
+    }
 
-	// ¶Ô´ÅÅÌ½øĞĞ¸ñÊ½»¯£¬¼´ÔÚ´ÅÅÌÉÏ½¨Á¢ÏàÓ¦µÄÊı¾İ½á¹¹
-	void format()
-	{
-		sector0.formatted = 1;
-		for (int i = 0; i < TOTAL_ENTRIES_ROOT; i++) {
+    // ¶Ô´ÅÅÌ½øĞĞ¸ñÊ½»¯£¬¼´ÔÚ´ÅÅÌÉÏ½¨Á¢ÏàÓ¦µÄÊı¾İ½á¹¹
+    void format()
+    {
+        sector0.formatted = 1;
+        for (int i = 0; i < TOTAL_ENTRIES_ROOT; i++) {
             rootDir[i].allocated = 0;
-		}
-		disk->write(0, &sector0);
+        }
+        disk->write(0, &sector0);
 
-		sector1.fst_count = 1;
-		fst[0].first_free_sector = 2; // Ç°Á½¸öÉÈÇøÒÑ×öËüÓÃ
+        sector1.fst_count = 1;
+        fst[0].first_free_sector = 2; // Ç°Á½¸öÉÈÇøÒÑ×öËüÓÃ
         fst[0].total = 998; // ¼ÙÉè´ÅÅÌ´óĞ¡Îª2+998=1000¸öÉÈÇø
-		disk->write(1, &sector1);
-	}
+        disk->write(1, &sector1);
+    }
 
 
-	// ±éÀúÄ¿Â¼£¬²¢½«¸÷¸öÄ¿Â¼Ïî´«¸ø»Øµ÷º¯Êı
-	void traverse(DirEntryFunc callback)
-	{
- 		for (int i = 0; i < TOTAL_ENTRIES_ROOT; i++) {
-			if (rootDir[i].allocated == 1) {
+    // ±éÀúÄ¿Â¼£¬²¢½«¸÷¸öÄ¿Â¼Ïî´«¸ø»Øµ÷º¯Êı
+    void traverse(DirEntryFunc callback)
+    {
+        for (int i = 0; i < TOTAL_ENTRIES_ROOT; i++) {
+            if (rootDir[i].allocated == 1) {
                 callback(&rootDir[i]);
-			}
-		}
-	}
+            }
+        }
+    }
 
-	// ·µ»ØÎÄ¼şµÄ´óĞ¡
-	int get_size(int fd)
-	{
-	    DirEntry* de = opened_file_table[fd].dir_entry;
-	    return de->size;
+    // ·µ»ØÎÄ¼şµÄ´óĞ¡
+    int get_size(int fd)
+    {
+        DirEntry* de = opened_file_table[fd].dir_entry;
+        return de->size;
 
-	}
+    }
 
-	// ÒÆ¶¯ÎÄ¼ş¶ÁĞ´Î»ÖÃ
-	void seek(int fd, int pos)
-	{
+    // ÒÆ¶¯ÎÄ¼ş¶ÁĞ´Î»ÖÃ
+    void seek(int fd, int pos)
+    {
 //	    // Îª¼òµ¥Æğ¼û£¬²»ÒªÈÃĞÂµÄÎ»ÖÃ³¬¹ıÎÄ¼ş´óĞ¡¡£(¸ÄÔÚwriteÀï½øĞĞ¼ì²â)
 //	    assert(false);
         opened_file_table[fd].pos = pos;
-	}
+    }
 
-	// ·µ»ØÎÄ¼şµ±Ç°¶ÁĞ´Î»ÖÃ
-	int tell(int fd)
-	{
-	    return opened_file_table[fd].pos;
-	}
+    // ·µ»ØÎÄ¼şµ±Ç°¶ÁĞ´Î»ÖÃ
+    int tell(int fd)
+    {
+        return opened_file_table[fd].pos;
+    }
 
-	// É¾³ıÖ¸¶¨ÎÄ¼ş
-	void remove(const char* filename)
-	{
-	    puts("not implemented!");
-	}
+    // É¾³ıÖ¸¶¨ÎÄ¼ş
+    void remove(const char* filename)
+    {
+        puts("not implemented!");
+    }
 
-	// ½¨Á¢Ò»¸öĞÂµÄÎÄ¼ş
-	// ´óĞ¡0×Ö½Ú£¬²¢²»·ÖÅäÉÈÇø¸øËü(writeµÄÊ±ºò²Å·ÖÅä)
-	bool newfile(const char* filename)
-	{
-		// ÕÒµ½Ò»¸ö¿ÕÏĞµÄÄ¿Â¼Ïî
-		int i;
-		for (i = 0; i < TOTAL_ENTRIES_ROOT; i++) {
-			if (rootDir[i].allocated == 0)
-				break;
-		}
+    // ½¨Á¢Ò»¸öĞÂµÄÎÄ¼ş
+    // ´óĞ¡0×Ö½Ú£¬²¢²»·ÖÅäÉÈÇø¸øËü(writeµÄÊ±ºò²Å·ÖÅä)
+    bool newfile(const char* filename)
+    {
+        // ÕÒµ½Ò»¸ö¿ÕÏĞµÄÄ¿Â¼Ïî
+        int i;
+        for (i = 0; i < TOTAL_ENTRIES_ROOT; i++) {
+            if (rootDir[i].allocated == 0)
+                break;
+        }
 
-		if (i == TOTAL_ENTRIES_ROOT) {
-			puts("ÒÑ¾­Ã»ÓĞ¿ÕÏĞÄ¿Â¼Ïî");
-			return false;
-		}
+        if (i == TOTAL_ENTRIES_ROOT) {
+            puts("ÒÑ¾­Ã»ÓĞ¿ÕÏĞÄ¿Â¼Ïî");
+            return false;
+        }
 
-		rootDir[i].allocated = 1;
-		strcpy(rootDir[i].name, filename);
-		rootDir[i].size = 0;
-		rootDir[i].sector = -1; // ±íÊ¾»¹Î´¸ø¸ÃÎÄ¼ş·ÖÅä¿Õ¼ä
+        rootDir[i].allocated = 1;
+        strcpy(rootDir[i].name, filename);
+        rootDir[i].size = 0;
+        rootDir[i].sector = -1; // ±íÊ¾»¹Î´¸ø¸ÃÎÄ¼ş·ÖÅä¿Õ¼ä
 
-		return true;
-	}
+        return true;
+    }
 
-	// ·µ»ØÎÄ¼şÃèÊö·û(ÆäÊµ¾ÍÊÇÎÄ¼şÔÚÒÑ´ò¿ªÎÄ¼ş±íÖĞµÄÏÂ±ê)
-	// Èç¹ûÎÄ¼ş²»´æÔÚ£¬¾Í·µ»Ø-1
-	// ÉĞÎ´¿¼ÂÇÎÄ¼şÖ®Ç°ÒÑ¾­´ò¿ªµÄÇéĞÎ
-	int open(const char* filename)
-	{
-	    // ÏÈÔÚ¸ùÄ¿Â¼ÖĞ¿´¿´¸ÃÎÄ¼şÊÇ·ñ´æÔÚ
-		int iDir;
-		for (iDir = 0; iDir < TOTAL_ENTRIES_ROOT; iDir++) {
-			if (rootDir[iDir].allocated == 1 && strcmp(rootDir[iDir].name, filename) == 0)
-				break;
-		}
+    // ·µ»ØÎÄ¼şÃèÊö·û(ÆäÊµ¾ÍÊÇÎÄ¼şÔÚÒÑ´ò¿ªÎÄ¼ş±íÖĞµÄÏÂ±ê)
+    // Èç¹ûÎÄ¼ş²»´æÔÚ£¬¾Í·µ»Ø-1
+    // ÉĞÎ´¿¼ÂÇÎÄ¼şÖ®Ç°ÒÑ¾­´ò¿ªµÄÇéĞÎ
+    int open(const char* filename)
+    {
+        // ÏÈÔÚ¸ùÄ¿Â¼ÖĞ¿´¿´¸ÃÎÄ¼şÊÇ·ñ´æÔÚ
+        int iDir;
+        for (iDir = 0; iDir < TOTAL_ENTRIES_ROOT; iDir++) {
+            if (rootDir[iDir].allocated == 1 && strcmp(rootDir[iDir].name, filename) == 0)
+                break;
+        }
 
-		if (iDir == TOTAL_ENTRIES_ROOT) {
-			return -1;
-		}
+        if (iDir == TOTAL_ENTRIES_ROOT) {
+            return -1;
+        }
 
-		// ÔÚ´ò¿ªÎÄ¼ş±íÖĞ·ÖÅäÒ»¸ö±íÏî
-		int iOft;
-		for (iOft = 0; iOft < TOTAL_ENTRIES_OFT; iOft++) {
-			if (opened_file_table[iOft].allocated == 0)
-				break;
-		}
+        // ÔÚ´ò¿ªÎÄ¼ş±íÖĞ·ÖÅäÒ»¸ö±íÏî
+        int iOft;
+        for (iOft = 0; iOft < TOTAL_ENTRIES_OFT; iOft++) {
+            if (opened_file_table[iOft].allocated == 0)
+                break;
+        }
 
-		if (iOft == TOTAL_ENTRIES_OFT) {
-			puts("ÒÑ´ïµ½´ò¿ªÎÄ¼şµÄ×î´óÊıÄ¿");
-			return -1;
-		}
+        if (iOft == TOTAL_ENTRIES_OFT) {
+            puts("ÒÑ´ïµ½´ò¿ªÎÄ¼şµÄ×î´óÊıÄ¿");
+            return -1;
+        }
 
-		opened_file_table[iOft].allocated = 1;
-		opened_file_table[iOft].dir_entry = &rootDir[iDir];
-		opened_file_table[iOft].pos = 0;
+        opened_file_table[iOft].allocated = 1;
+        opened_file_table[iOft].dir_entry = &rootDir[iDir];
+        opened_file_table[iOft].pos = 0;
 
-		return iOft;
+        return iOft;
 
-	}
+    }
 
-	// ¹Ø±ÕÎÄ¼ş¡£fdÎªopen·µ»ØµÄÎÄ¼şÃèÊö·û
-	void close(int fd)
-	{
-	    opened_file_table[fd].allocated = 0;
-	}
+    // ¹Ø±ÕÎÄ¼ş¡£fdÎªopen·µ»ØµÄÎÄ¼şÃèÊö·û
+    void close(int fd)
+    {
+        opened_file_table[fd].allocated = 0;
+    }
 
-	// Ğ´ÎÄ¼ş
-	// ½«»º³åÇøbufferÖĞsize¸ö×Ö½ÚµÄÄÚÈİĞ´ÈëfdËù´ú±íµÄÎÄ¼ş
-	void write(int fd, const void* buffer, int size)
-	{
-	    DirEntry* de = opened_file_table[fd].dir_entry;
+    // Ğ´ÎÄ¼ş
+    // ½«»º³åÇøbufferÖĞsize¸ö×Ö½ÚµÄÄÚÈİĞ´ÈëfdËù´ú±íµÄÎÄ¼ş
+    void write(int fd, const void* buffer, int size)
+    {
+        DirEntry* de = opened_file_table[fd].dir_entry;
 
-	    int nSectors = bytes2sectors(opened_file_table[fd].pos + size);
+        int nSectors = bytes2sectors(opened_file_table[fd].pos + size);
 
-		if (de->sector == -1) { // ±íÊ¾»¹Î´·ÖÅä¿Õ¼ä£¬ÏÖÔÚ·ÖÅä
+        if (de->sector == -1) { // ±íÊ¾»¹Î´·ÖÅä¿Õ¼ä£¬ÏÖÔÚ·ÖÅä
             // ÔÚ¿ÕÏĞÉÈÇø±íÀïÕÒµ½×ã¹»´óµÄÁ¬Ğø¿Õ¼ä£¬¾Í·ÖÅä
             int j;
             for (j = 0; j < sector1.fst_count; j++) {
@@ -310,25 +312,24 @@ public:
             fst[j].first_free_sector += nSectors;
 
             de->size = size;
-		}
-		else {
+        } else {
             // Îª¼òµ¥Æğ¼û£¬¼ÙÉèÏÈÇ°·ÖÅäµÄ¿Õ¼ä´óĞ¡ÄÜÂú×ãÈÕºóËùÓĞĞèÇó
             assert(bytes2sectors(de->size) >= nSectors);
-		}
+        }
 
-		int first_sector = de->sector;
+        int first_sector = de->sector;
 
-		char* p = (char*)buffer;
+        char* p = (char*)buffer;
 
-		// ĞèÒª¿¼ÂÇÕâÑùµÄÇéĞÎ£ºÆğÊ¼Óë½áÊøÎ»ÖÃ£¬¶¼²»ÔÚÉÈÇø±ß½ç´¦¡£
-		// ¿ÉÄÜÆğÊ¼Î»ÖÃÎ»ÓÚÆğÊ¼ÉÈÇøµÄÖĞ¼äÄ³´¦
-		// ½áÊøÎ»ÖÃÒ²Î»ÓÚ½áÊøÉÈÇøµÄÖĞ¼äÄ³´¦
-		// ¶ÔÓÚÕâÁ½¸öÉÈÇøÒªÆ´×°³öÀ´ÔÚĞ´Èë´ÅÅÌ
-		// ¶ÔÓÚÆğÊ¼ÉÈÇø£¬Æ´×°³öÀ´µÄÄÚÈİÀ´×Ô´ÅÅÌÉÏÆğÊ¼ÉÈÇøµÄÏÖÓĞÄÚÈİÓëbuffer
-		// ¶ÔÓÚ½áÊøÉÈÇø£¬Æ´×°³öÀ´µÄÄÚÈİÀ´×Ô´ÅÅÌÉÏ½áÊøÉÈÇøµÄÏÖÓĞÄÚÈİÓëbuffer
-		// ×¢Òâ£ºËùÓĞbegin_¡¢end_Çø¼ä½ÔÎª±ÕÇø¼äÇø¼ä
-		int begin_pos = opened_file_table[fd].pos;
-		int end_pos = begin_pos + size - 1;
+        // ĞèÒª¿¼ÂÇÕâÑùµÄÇéĞÎ£ºÆğÊ¼Óë½áÊøÎ»ÖÃ£¬¶¼²»ÔÚÉÈÇø±ß½ç´¦¡£
+        // ¿ÉÄÜÆğÊ¼Î»ÖÃÎ»ÓÚÆğÊ¼ÉÈÇøµÄÖĞ¼äÄ³´¦
+        // ½áÊøÎ»ÖÃÒ²Î»ÓÚ½áÊøÉÈÇøµÄÖĞ¼äÄ³´¦
+        // ¶ÔÓÚÕâÁ½¸öÉÈÇøÒªÆ´×°³öÀ´ÔÚĞ´Èë´ÅÅÌ
+        // ¶ÔÓÚÆğÊ¼ÉÈÇø£¬Æ´×°³öÀ´µÄÄÚÈİÀ´×Ô´ÅÅÌÉÏÆğÊ¼ÉÈÇøµÄÏÖÓĞÄÚÈİÓëbuffer
+        // ¶ÔÓÚ½áÊøÉÈÇø£¬Æ´×°³öÀ´µÄÄÚÈİÀ´×Ô´ÅÅÌÉÏ½áÊøÉÈÇøµÄÏÖÓĞÄÚÈİÓëbuffer
+        // ×¢Òâ£ºËùÓĞbegin_¡¢end_Çø¼ä½ÔÎª±ÕÇø¼äÇø¼ä
+        int begin_pos = opened_file_table[fd].pos;
+        int end_pos = begin_pos + size - 1;
         int begin_sector = first_sector + begin_pos / SECTOR_SIZE;
         int end_sector = first_sector + end_pos / SECTOR_SIZE;
         int begin_pos_in_sector = begin_pos % SECTOR_SIZE;
@@ -341,22 +342,19 @@ public:
                 memcpy(sec + begin_pos_in_sector, p, size);
                 disk->write(iSector, sec);
                 p += size;
-            }
-            else if (iSector == begin_sector) {
+            } else if (iSector == begin_sector) {
                 char sec[SECTOR_SIZE];
                 disk->read(iSector, sec);
                 memcpy(sec + begin_pos_in_sector, p, SECTOR_SIZE - begin_pos_in_sector);
                 disk->write(iSector, sec);
                 p += SECTOR_SIZE - begin_pos_in_sector;
-            }
-            else if (iSector == end_sector - 1) {
+            } else if (iSector == end_sector - 1) {
                 char sec[SECTOR_SIZE];
                 disk->read(iSector, sec);
                 memcpy(sec, p, end_pos_in_sector + 1);
                 disk->write(iSector, sec);
                 p += end_pos_in_sector;
-            }
-            else {
+            } else {
                 disk->write(iSector, p);
                 p += SECTOR_SIZE;
             }
@@ -367,22 +365,22 @@ public:
             de->size = opened_file_table[fd].pos;
         }
 
-	}
+    }
 
-	// ¶ÁÎÄ¼ş
-	// ´ÓfdËù´ú±íµÄÎÄ¼şÖĞ¶ÁÈësize¸ö×Ö½ÚµÄÄÚÈİµ½»º³åÇøbufferÖĞ
-	void read(int fd, const void* buffer, int size)
-	{
-	    DirEntry* de = opened_file_table[fd].dir_entry;
+    // ¶ÁÎÄ¼ş
+    // ´ÓfdËù´ú±íµÄÎÄ¼şÖĞ¶ÁÈësize¸ö×Ö½ÚµÄÄÚÈİµ½»º³åÇøbufferÖĞ
+    void read(int fd, const void* buffer, int size)
+    {
+        DirEntry* de = opened_file_table[fd].dir_entry;
 
-	    // Îª¼òµ¥Æğ¼û£¬²»ÒªÈÃ¶ÁĞ´Î»ÖÃÔ½¹ıÎÄ¼şÄ©Î²
-	    assert(opened_file_table[fd].pos + size <= de->size);
+        // Îª¼òµ¥Æğ¼û£¬²»ÒªÈÃ¶ÁĞ´Î»ÖÃÔ½¹ıÎÄ¼şÄ©Î²
+        assert(opened_file_table[fd].pos + size <= de->size);
 
-		int first_sector = de->sector;
-		char* p = (char*)buffer;
+        int first_sector = de->sector;
+        char* p = (char*)buffer;
 
-		int begin_pos = opened_file_table[fd].pos;
-		int end_pos = begin_pos + size - 1;
+        int begin_pos = opened_file_table[fd].pos;
+        int end_pos = begin_pos + size - 1;
         int begin_sector = first_sector + begin_pos / SECTOR_SIZE;
         int end_sector = first_sector + end_pos / SECTOR_SIZE;
         int begin_pos_in_sector = begin_pos % SECTOR_SIZE;
@@ -394,20 +392,17 @@ public:
                 disk->read(iSector, sec);
                 memcpy(p, sec + begin_pos_in_sector, size);
                 p += size;
-            }
-            else if (iSector == begin_sector) {
+            } else if (iSector == begin_sector) {
                 char sec[SECTOR_SIZE];
                 disk->read(iSector, sec);
                 memcpy(p, sec + begin_pos_in_sector, SECTOR_SIZE - begin_pos_in_sector);
                 p += SECTOR_SIZE - begin_pos_in_sector;
-            }
-            else if (iSector == end_sector - 1) {
+            } else if (iSector == end_sector - 1) {
                 char sec[SECTOR_SIZE];
                 disk->read(iSector, sec);
                 memcpy(p, sec, end_pos_in_sector + 1);
                 p += end_pos_in_sector;
-            }
-            else {
+            } else {
                 disk->read(iSector, p);
                 p += SECTOR_SIZE;
             }
@@ -418,7 +413,7 @@ public:
             de->size = opened_file_table[fd].pos;
         }
 
-	}
+    }
 };
 
 #endif

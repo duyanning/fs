@@ -9,12 +9,12 @@ void show_dir_entry(DirEntry* e)
 
 int main()
 {
-	Disk disk;
-	FileSystem fs(&disk);
+    Disk disk;
+    FileSystem fs(&disk);
 
-	if (!fs.is_formatted()) {
+    if (!fs.is_formatted()) {
         puts("磁盘尚未格式化，请先执行format命令格式化磁盘。");
-	}
+    }
 
     puts("执行help命令可列出所有命令；执行quit命令退出。");
     char cmd[20];
@@ -32,19 +32,15 @@ int main()
             break;
         else if (strcmp(cmd, "ls") == 0) {
             fs.traverse(show_dir_entry);
-        }
-        else if (strcmp(cmd, "format") == 0) {
+        } else if (strcmp(cmd, "format") == 0) {
             fs.format();
-        }
-        else if (strcmp(cmd, "rm") == 0) {
+        } else if (strcmp(cmd, "rm") == 0) {
             scanf("%s", filename);
             fs.remove(filename);
-        }
-        else if (strcmp(cmd, "touch") == 0) {
+        } else if (strcmp(cmd, "touch") == 0) {
             scanf("%s", filename);
             fs.newfile(filename);
-        }
-        else if (strcmp(cmd, "cat") == 0) {
+        } else if (strcmp(cmd, "cat") == 0) {
             scanf("%s", filename);
             int fd = fs.open(filename);
             char buf[100];
@@ -52,8 +48,7 @@ int main()
             fs.read(fd, buf, fs.get_size(fd));
             puts(buf);
             fs.close(fd);
-        }
-        else if (strcmp(cmd, "catat") == 0) {
+        } else if (strcmp(cmd, "catat") == 0) {
             int pos;
             scanf("%s%d", filename, &pos);
             int fd = fs.open(filename);
@@ -63,16 +58,14 @@ int main()
             fs.read(fd, buf, fs.get_size(fd) - pos);
             puts(buf);
             fs.close(fd);
-        }
-        else if (strcmp(cmd, "write") == 0) {
+        } else if (strcmp(cmd, "write") == 0) {
             scanf("%s", filename);
             char buf[100];
             scanf("%s", buf);
             int fd = fs.open(filename);
             fs.write(fd, buf, strlen(buf));
             fs.close(fd);
-        }
-        else if (strcmp(cmd, "write2") == 0) { // 在不关闭文件的情况下连写两次
+        } else if (strcmp(cmd, "write2") == 0) { // 在不关闭文件的情况下连写两次
             scanf("%s", filename);
             char buf1[100];
             scanf("%s", buf1);
@@ -82,8 +75,7 @@ int main()
             fs.write(fd, buf1, strlen(buf1));
             fs.write(fd, buf2, strlen(buf2));
             fs.close(fd);
-        }
-        else if (strcmp(cmd, "writeat") == 0) {
+        } else if (strcmp(cmd, "writeat") == 0) {
             scanf("%s", filename);
             int pos;
             char buf[100];
@@ -93,8 +85,7 @@ int main()
             fs.seek(fd, pos);
             fs.write(fd, buf, strlen(buf));
             fs.close(fd);
-        }
-        else if (strcmp(cmd, "help") == 0) {
+        } else if (strcmp(cmd, "help") == 0) {
             puts("quit\t\t\t\t退出");
             puts("format\t\t\t\t格式化磁盘");
             puts("touch 文件名\t\t\t创建一个新文件");
@@ -108,5 +99,5 @@ int main()
         }
     }
 
-	return 0;
+    return 0;
 }
