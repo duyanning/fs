@@ -22,8 +22,6 @@ int bytes2sectors(int nBytes)
 
 // 代表磁盘(其实相当于磁盘镜像)
 class Disk {
-//	FILE* fp;
-//	bool ok;
 public:
 	Disk()
 	{
@@ -33,28 +31,18 @@ public:
             puts("disk不存在");
 
 		// disk文件不存在就创建一个
-		if (!fp)
+		if (!fp) {
             fp = fopen("disk", "w+b");
+            puts("已创建disk");
+		}
 
         fclose(fp);
 
-//		if (fp) {
-//			ok = true;
-//		}
-//		else {
-//            ok = false;
-//		}
 	}
 
 	~Disk()
 	{
-		//fclose(fp);
 	}
-
-//	bool is_ok()
-//	{
-//        return ok;
-//	}
 
 	// 读扇区i。请确保sector所指缓冲区有SECTOR_SIZE字节大
 	void read(int i, void* sector)
@@ -242,7 +230,6 @@ public:
 		return true;
 	}
 
-
 	// 返回文件描述符(其实就是文件在已打开文件表中的下标)
 	// 如果文件不存在，就返回-1
 	// 尚未考虑文件之前已经打开的情形
@@ -274,7 +261,6 @@ public:
 		opened_file_table[iOft].allocated = 1;
 		opened_file_table[iOft].dir_entry = &rootDir[iDir];
 		opened_file_table[iOft].pos = 0;
-
 
 		return iOft;
 
@@ -316,12 +302,9 @@ public:
             assert(bytes2sectors(de->size) >= nSectors);
 		}
 
-
-
 		int first_sector = de->sector;
 
 		char* p = (char*)buffer;
-
 
 		// 需要考虑这样的情形：起始与结束位置，都不在扇区边界处。
 		// 可能起始位置位于起始扇区的中间某处

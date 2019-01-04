@@ -10,12 +10,11 @@ void show_dir_entry(DirEntry* e)
 int main()
 {
 	Disk disk;
-//	if (!disk.is_ok()) {
-//        puts("disk error");
-//        return 0;
-//	}
-
 	FileSystem fs(&disk);
+
+	if (!fs.is_formatted()) {
+        puts("磁盘尚未格式化，请先执行format命令格式化磁盘。");
+	}
 
     puts("use 'help' to get available commands");
     char cmd[20];
@@ -25,7 +24,7 @@ int main()
         printf("> ");
         scanf("%s", cmd);
         if (!fs.is_formatted() && strcmp(cmd, "format") != 0 && strcmp(cmd, "quit") != 0) {
-            puts("Disk has not been formatted. Use format first.");
+            puts("磁盘尚未格式化，请先执行format命令格式化磁盘。");
             continue;
         }
 
