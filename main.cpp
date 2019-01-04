@@ -49,7 +49,7 @@ int main()
             scanf("%s", filename);
             int fd = fs.open(filename);
             char buf[100];
-            memset(buf, 0, sizeof buf); // 掳脩禄潞鲁氓脟酶脠芦脟氓脕茫
+            memset(buf, 0, sizeof buf); // 将buf清零
             fs.read(fd, buf, fs.get_size(fd));
             puts(buf);
             fs.close(fd);
@@ -62,7 +62,7 @@ int main()
             fs.write(fd, buf, strlen(buf));
             fs.close(fd);
         }
-        else if (strcmp(cmd, "write2") == 0) { // 鍦ㄤ笉鍏抽棴鏂囦欢鐨勬儏鍐典笅杩炲啓涓ゆ
+        else if (strcmp(cmd, "write2") == 0) { // 在不关闭文件的情况下连写两次
             scanf("%s", filename);
             char buf1[100];
             scanf("%s", buf1);
