@@ -81,10 +81,7 @@ int main()
             puts("cat <filename>\t\t\tshow a file");
             puts("write <filename> <content>\tcreate a file having the content");
         }
-
-
     }
-
 
 	return 0;
 }

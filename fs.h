@@ -127,9 +127,7 @@ class FileSystem {
 	Disk* disk;
 	Sector0 sector0;
 	Sector1 sector1;
-	//DirEntry rootDir[SECTOR_SIZE / sizeof(DirEntry)];
 	DirEntry* rootDir;
-	//FreeSectorTableEntry fst[SECTOR_SIZE / sizeof(FreeSectorTableEntry)];
 	FreeSectorTableEntry* fst;
 
 public:
@@ -190,6 +188,7 @@ public:
 		}
 	}
 
+	// 返回文件的大小
 	int get_size(int fd)
 	{
 	    DirEntry* de = opened_file_table[fd].dir_entry;
@@ -197,11 +196,14 @@ public:
 
 	}
 
+	// 删除指定文件
 	void remove(const char* filename)
 	{
 	    puts("not implemented!");
 	}
 
+	// 建立一个新的文件
+	// 大小0字节，并不分配扇区给它(write的时候才分配)
 	bool newfile(const char* filename)
 	{
 		// 找到一个空闲的目录项
@@ -225,7 +227,8 @@ public:
 	}
 
 
-	// 返回打开文件表中的位置，如果文件不存在，就返回-1
+	// 返回文件描述符(其实就是文件在已打开文件表中的下标)
+	// 如果文件不存在，就返回-1
 	// 尚未考虑文件之前已经打开的情形
 	int open(const char* filename)
 	{
@@ -260,12 +263,15 @@ public:
 		return iOft;
 
 	}
-//
+
+	// 关闭文件。fd为open返回的文件描述符
 	void close(int fd)
 	{
 	    opened_file_table[fd].allocated = 0;
 	}
-//
+
+	// 写文件
+	// 将缓冲区buffer中size个字节的内容写入fd所代表的文件
 	void write(int fd, const void* buffer, int size)
 	{
 	    DirEntry* de = opened_file_table[fd].dir_entry;
@@ -349,7 +355,9 @@ public:
         }
 
 	}
-//
+
+	// 读文件
+	// 从fd所代表的文件中读入size个字节的内容到缓冲区buffer中
 	void read(int fd, const void* buffer, int size)
 	{
 	    DirEntry* de = opened_file_table[fd].dir_entry;
@@ -397,21 +405,6 @@ public:
             de->size = opened_file_table[fd].pos;
         }
 
-
-//		int n = size / SECTOR_SIZE;
-//		int remainder = size % SECTOR_SIZE;
-//
-//		int i;
-//		for (i = first_sector; i < first_sector + n; i++) {
-//			disk->read(i, p);
-//			p += SECTOR_SIZE;
-//		}
-//
-//		if (remainder != 0) {
-//			char buffer[SECTOR_SIZE];
-//			disk->read(i, buffer);
-//			memcpy(p, buffer, remainder);
-//		}
 	}
 };
 
