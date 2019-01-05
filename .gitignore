@@ -3,3 +3,6 @@ obj
 *.layout
 disk
 *.depend
+*.o
+*.exe
+*.win
